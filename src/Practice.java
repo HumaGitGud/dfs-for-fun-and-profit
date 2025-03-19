@@ -74,25 +74,22 @@ public class Practice {
    * @return The maximum value of any reachable vertex, or Integer.MIN_VALUE if vertex is null.
    */
   public int max(Vertex<Integer> vertex) {
-    if (vertex == null) return Integer.MIN_VALUE;
-    return maxHelper(vertex, new HashSet<Vertex<Integer>>());
+    Set<Vertex<Integer>> visited = new HashSet<>();
+    return max(vertex, visited);
   }
   
-  public int maxHelper(Vertex<Integer> vertex, Set<Vertex<Integer>> visited) {
-    // Base case
-    if (vertex == null) return Integer.MIN_VALUE;
-    if (visited.contains(vertex)) return Integer.MIN_VALUE;
+  private int max(Vertex<Integer> vertex, Set<Vertex<Integer>> visited) {
+    if (vertex == null || visited.contains(vertex)) return Integer.MIN_VALUE;
 
     visited.add(vertex);
-
-    int maxValue = vertex.data;
+    int maxVal = vertex.data;
 
     for (Vertex<Integer> neighbor : vertex.neighbors) {
-      int neighborMaxValue = maxHelper(neighbor, visited);
-      maxValue = Math.max(maxValue, neighborMaxValue);
+      if (neighbor.data > maxVal) maxVal = neighbor.data;
+      maxVal = Math.max(maxVal, max(neighbor, visited));
     }
 
-    return maxValue;
+    return maxVal;
   }
 
   /**
@@ -107,23 +104,25 @@ public class Practice {
    * @return A set containing all reachable leaf vertices, or an empty set if vertex is null.
    */
   public <T> Set<Vertex<T>> leaves(Vertex<T> vertex) {
-    Set<Vertex<T>> leaf = new HashSet<>();
-    leaves(vertex, new HashSet<>(), leaf);
-    return leaf;
+    Set<Vertex<T>> visited = new HashSet<>();
+    Set<Vertex<T>> leaves = new HashSet<>();
+    return leaves(vertex, visited, leaves);
   }
   
-  public <T> void leaves(Vertex<T> vertex, Set<Vertex<T>> visited, Set<Vertex<T>> leaf) {
-    // Base case
-    if (vertex == null || visited.contains(vertex)) return;
+  public <T> Set<Vertex<T>> leaves(Vertex<T> vertex, Set<Vertex<T>> visited,  Set<Vertex<T>> leaves) {
+    if (vertex == null || visited.contains(vertex)) return leaves;
 
     visited.add(vertex);
-    
-  if (vertex.neighbors.isEmpty()) leaf.add(vertex);
 
-    for(Vertex<T> neighbor : vertex.neighbors) {
-      leaves(neighbor, visited, leaf);
+    if (vertex.neighbors.isEmpty()) leaves.add(vertex);
+
+    for (Vertex<T> neighbor : vertex.neighbors) {
+      leaves(neighbor, visited, leaves);
     }
+
+    return leaves;
   }
+
 
   /**
    * Determines whether there exists a strictly increasing path from the given start vertex
@@ -139,21 +138,34 @@ public class Practice {
    * @return True if a strictly increasing path exists, false otherwise.
    * @throws NullPointerException if either start or end is null.
    */
+
+   /*
+    Create a visited hashset in main method
+    Create a helper method and pass visited 
+    Create base cases for null start, null, end visited vertices
+    Add newly encountered verices to visited
+    Create a foreach loop
+      if a neighbor.data > vertex.data
+        recurse: if path exists with neighbor = return true
+    return false
+    */
   public boolean hasStrictlyIncreasingPath(Vertex<Integer> start, Vertex<Integer> end) {
-    if (start == null || end == null) throw new NullPointerException("start or end vertex is null");
-    return hasStrictlyIncreasingPathhelper(start, end);
+    Set<Vertex<Integer>> visited = new HashSet<>();
+    return hasStrictlyIncreasingPath(start, end, visited);
   }
+  
+  public boolean hasStrictlyIncreasingPath(Vertex<Integer> start, Vertex<Integer> end, Set<Vertex<Integer>> visited) {
+    if (start == null || end == null) throw new NullPointerException();
+    if (visited.contains(start)) return false;
+    if (start == end) return true;
 
-  private boolean hasStrictlyIncreasingPathhelper(Vertex<Integer> curr, Vertex<Integer> end) {
-    // Base case: if current vertex and end vertex match, we are done with operation
-    if (curr.equals(end)) return true;
+    visited.add(start);
 
-    for (Vertex<Integer> neighbor : curr.neighbors) {
-      if (neighbor.data > curr.data) {
-        boolean exists = hasStrictlyIncreasingPath(neighbor, end);
-        if (exists) return true;
+    for (Vertex<Integer> neighbor : start.neighbors) {
+      if (neighbor.data > start.data) {
+        if (hasStrictlyIncreasingPath(neighbor, end, visited)) return true;
       }
-  }
+    }
 
     return false;
   }
